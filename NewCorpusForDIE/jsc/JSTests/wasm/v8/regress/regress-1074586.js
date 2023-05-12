@@ -1,0 +1,198 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+function noInline() {
+}
+
+function OSRExit() {
+}
+
+function ensureArrayStorage() {
+}
+
+function fiatInt52(i) {
+	return i;
+}
+
+function noDFG() {
+}
+
+function noOSRExitFuzzing() {
+}
+
+function isFinalTier() {
+	return true;
+}
+
+function transferArrayBuffer() {
+}
+
+function fullGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function edenGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function forceGCSlowPaths() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function noFTL() {
+
+}
+
+function debug(x) {
+	console.log(x);
+}
+
+function describe(x) {
+	console.log(x);
+}
+
+function isInt32(i) {
+	return (typeof i === "number");
+}
+
+function BigInt(i) {
+	return i;
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+// Copyright 2020 the V8 project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// Flags: --wasm-staging
+
+load('wasm-module-builder.js');
+
+const builder = new WasmModuleBuilder();
+builder.addMemory(1, 1, false, true);
+builder.addGlobal(kWasmI32, 1);
+const sig = builder.addType(makeSig([kWasmI32, kWasmI64, kWasmI64, kWasmI64], [kWasmF32]));
+// Generate function 1 (out of 3).
+builder.addFunction(undefined, sig)
+  .addLocals(kWasmI32, 57).addLocals(kWasmI64, 11)
+  .addBodyWithEnd([
+// signature: f_illl
+// body:
+kExprLocalGet, 0x1b,  // local.get
+kExprLocalSet, 0x1c,  // local.set
+kExprI32Const, 0x00,  // i32.const
+kExprIf, kWasmVoid,  // if @11
+  kExprGlobalGet, 0x00,  // global.get
+  kExprLocalSet, 0x1e,  // local.set
+  kExprBlock, kWasmVoid,  // block @19
+    kExprGlobalGet, 0x00,  // global.get
+    kExprLocalSet, 0x21,  // local.set
+    kExprBlock, kWasmVoid,  // block @25
+      kExprBlock, kWasmVoid,  // block @27
+        kExprBlock, kWasmVoid,  // block @29
+          kExprGlobalGet, 0x00,  // global.get
+          kExprLocalSet, 0x0a,  // local.set
+          kExprI32Const, 0x00,  // i32.const
+          kExprLocalSet, 0x28,  // local.set
+          kExprLocalGet, 0x00,  // local.get
+          kExprLocalSet, 0x0b,  // local.set
+          kExprI32Const, 0x00,  // i32.const
+          kExprBrIf, 0x01,  // br_if depth=1
+          kExprEnd,  // end @47
+        kExprUnreachable,  // unreachable
+        kExprEnd,  // end @49
+      kExprI32Const, 0x01,  // i32.const
+      kExprLocalSet, 0x36,  // local.set
+      kExprI32Const, 0x00,  // i32.const
+      kExprIf, kWasmVoid,  // if @56
+        kExprEnd,  // end @59
+      kExprLocalGet, 0x00,  // local.get
+      kExprLocalSet, 0x10,  // local.set
+      kExprI32Const, 0x00,  // i32.const
+      kExprI32Eqz,  // i32.eqz
+      kExprLocalSet, 0x38,  // local.set
+      kExprBlock, kWasmVoid,  // block @69
+        kExprI32Const, 0x7f,  // i32.const
+        kExprI32Eqz,  // i32.eqz
+        kExprLocalSet, 0x39,  // local.set
+        kExprI32Const, 0x01,  // i32.const
+        kExprIf, kWasmVoid,  // if @78
+          kExprGlobalGet, 0x00,  // global.get
+          kExprLocalSet, 0x11,  // local.set
+          kExprI32Const, 0x00,  // i32.const
+          kExprI32Eqz,  // i32.eqz
+          kExprLocalSet, 0x12,  // local.set
+          kExprGlobalGet, 0x00,  // global.get
+          kExprLocalSet, 0x13,  // local.set
+          kExprI32Const, 0x00,  // i32.const
+          kExprI32Const, 0x01,  // i32.const
+          kExprI32Sub,  // i32.sub
+          kExprLocalSet, 0x3a,  // local.set
+          kExprI32Const, 0x00,  // i32.const
+          kAtomicPrefix, kExprI64AtomicLoad16U, 0x01, 0x04,  // i64.atomic.load16_u
+          kExprDrop,  // drop
+          kExprI64Const, 0x01,  // i64.const
+          kExprLocalSet, 0x44,  // local.set
+          kExprI64Const, 0x01,  // i64.const
+          kExprLocalSet, 0x3e,  // local.set
+        kExprElse,  // else @115
+          kExprNop,  // nop
+          kExprEnd,  // end @117
+        kExprLocalGet, 0x40,  // local.get
+        kExprLocalSet, 0x41,  // local.set
+        kExprLocalGet, 0x41,  // local.get
+        kExprI64Const, 0x4b,  // i64.const
+        kExprI64Add,  // i64.add
+        kExprDrop,  // drop
+        kExprEnd,  // end @128
+      kExprEnd,  // end @129
+    kExprUnreachable,  // unreachable
+    kExprEnd,  // end @132
+  kExprUnreachable,  // unreachable
+  kExprEnd,  // end @134
+kExprF32Const, 0x00, 0x00, 0x84, 0x42,  // f32.const
+kExprEnd,  // end @140
+]);
+const instance = builder.instantiate();

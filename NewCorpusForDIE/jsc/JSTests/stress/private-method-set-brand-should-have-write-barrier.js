@@ -1,0 +1,143 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+function noInline() {
+}
+
+function OSRExit() {
+}
+
+function ensureArrayStorage() {
+}
+
+function fiatInt52(i) {
+	return i;
+}
+
+function noDFG() {
+}
+
+function noOSRExitFuzzing() {
+}
+
+function isFinalTier() {
+	return true;
+}
+
+function transferArrayBuffer() {
+}
+
+function fullGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function edenGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function forceGCSlowPaths() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function noFTL() {
+
+}
+
+function debug(x) {
+	console.log(x);
+}
+
+function describe(x) {
+	console.log(x);
+}
+
+function isInt32(i) {
+	return (typeof i === "number");
+}
+
+function BigInt(i) {
+	return i;
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+let assert = {
+    sameValue: function(a, e) {
+        if (a !== e)
+            throw new Error("Expected: " + e + " but got: " + a);
+    }
+};
+
+let obj = {};
+let overrideSuper = false
+class Base {
+    constructor() {
+        if (overrideSuper)
+            return obj;
+        return {};
+    }
+}
+
+class C extends Base {
+    #method() {
+        return 'test';
+    }
+
+    static access(o) {
+        return o.#method();
+    }
+}
+noInline(C.access);
+
+gc();
+let c = new C(); // This is done to fill IC path
+c = null;
+
+overrideSuper = true;
+new C();
+edenGC(); // this leaves obj with a Strucutre that was freed
+for (let i = 0; i < 10000; i++) {
+    assert.sameValue(C.access(obj), 'test');
+}
+

@@ -1,0 +1,102 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+WScript = {
+    _jscGC: gc,
+    _jscPrint: console.log,
+    _convertPathname : function(dosStylePath)
+    {
+        return dosStylePath.replace(/\\/g, "/");
+    },
+    Arguments : [ "summary" ],
+    Echo : function()
+    {
+        WScript._jscPrint.apply(this, arguments);
+    },
+    LoadScriptFile : function(path)
+    {
+    },
+    Quit : function()
+    {
+    },
+    Platform :
+    {
+        "BUILD_TYPE": "Debug"
+    }
+};
+
+function CollectGarbage()
+{
+    WScript._jscGC();
+}
+
+function $ERROR(e)
+{
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
+var x = { a: "x.a", f: function() { return this.a; } };
+var y = { a: "y.a", f: function() { return this.a; } };
+var a = "glo.a";
+function f() {
+    return this.a;
+}
+
+with (x) {
+    with (y) {
+        eval("WScript.Echo(f())");
+        eval("WScript.Echo(x.f(), f())");
+    }
+    eval("WScript.Echo(x.f(), f())");
+}
+eval("WScript.Echo(y.f(), x.f(), f())");
+
+with (Math) {
+    with (9) {
+        with (8) {
+            with (7) {
+                with (6) {
+                    WScript.Echo(eval("abs(valueOf())"));
+                }
+            }
+        }
+    }
+}

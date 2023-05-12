@@ -1,0 +1,113 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+function noInline() {
+}
+
+function OSRExit() {
+}
+
+function ensureArrayStorage() {
+}
+
+function fiatInt52(i) {
+	return i;
+}
+
+function noDFG() {
+}
+
+function noOSRExitFuzzing() {
+}
+
+function isFinalTier() {
+	return true;
+}
+
+function transferArrayBuffer() {
+}
+
+function fullGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function edenGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function forceGCSlowPaths() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function noFTL() {
+
+}
+
+function debug(x) {
+	console.log(x);
+}
+
+function describe(x) {
+	console.log(x);
+}
+
+function isInt32(i) {
+	return (typeof i === "number");
+}
+
+function BigInt(i) {
+	return i;
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+description('Tests for ES6 arrow function, passing arrow function as the paramter');
+
+var f = function (cl, paramter) { return cl(paramter); };
+var f2 = function (cl, paramter1, paramter2) { return cl(paramter1, paramter2); };
+
+shouldBe('f(x=>{return x * 25;}, 121)', '25*121' );
+shouldBe('f2((x, y)=>{return x * y;}, 14, 12)', '14*12');
+
+var successfullyParsed = true;

@@ -1,0 +1,287 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+function noInline() {
+}
+
+function OSRExit() {
+}
+
+function ensureArrayStorage() {
+}
+
+function fiatInt52(i) {
+	return i;
+}
+
+function noDFG() {
+}
+
+function noOSRExitFuzzing() {
+}
+
+function isFinalTier() {
+	return true;
+}
+
+function transferArrayBuffer() {
+}
+
+function fullGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function edenGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function forceGCSlowPaths() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function noFTL() {
+
+}
+
+function debug(x) {
+	console.log(x);
+}
+
+function describe(x) {
+	console.log(x);
+}
+
+function isInt32(i) {
+	return (typeof i === "number");
+}
+
+function BigInt(i) {
+	return i;
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+//@ runWebAssemblySuite("--useWebAssemblyTypedFunctionReferences=true", "--useWebAssemblyGC=true")
+
+import * as assert from "../assert.js";
+import { compile, instantiate } from "./wast-wrapper.js";
+
+function testInternalize() {
+  {
+    let m = instantiate(`
+      (module
+        (func (export "f") (param externref) (result i32)
+          (i31.get_s (ref.cast i31 (extern.internalize (local.get 0)))))
+      )
+    `);
+    assert.eq(m.exports.f(0), 0);
+    assert.eq(m.exports.f(5), 5);
+    assert.eq(m.exports.f(5.0), 5);
+    assert.eq(m.exports.f(2 ** 30 - 1), 2 ** 30 - 1);
+    assert.eq(m.exports.f(-(2 ** 30)), -(2 ** 30));
+    assert.throws(
+      () => m.exports.f(2 ** 30),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(2 ** 32),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(-(2 ** 30) - 1),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(5.3),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f("foo"),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(Symbol()),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+  }
+
+  // With internalize available, it's possible to create hostref values that
+  // need to be distinguished from eqref values.
+  {
+    let m = instantiate(`
+      (module
+        (func (export "f") (param externref)
+          (ref.cast eq (extern.internalize (local.get 0)))
+          drop)
+      )
+    `);
+    m.exports.f(0);
+    assert.throws(
+      () => m.exports.f("foo"),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(2 ** 32),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(Symbol()),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+  }
+
+  {
+    let m = instantiate(`
+      (module
+        (func (export "f") (param externref)
+          (ref.cast array (extern.internalize (local.get 0)))
+          drop)
+      )
+    `);
+    assert.throws(
+      () => m.exports.f("foo"),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(2 ** 32),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+    assert.throws(
+      () => m.exports.f(Symbol()),
+      WebAssembly.RuntimeError,
+      "ref.cast failed to cast reference to target heap type"
+    );
+  }
+}
+
+function testExternalize() {
+  {
+    let m = instantiate(`
+      (module
+        (func (export "f") (param i32) (result externref)
+          (extern.externalize (i31.new (local.get 0))))
+      )
+    `);
+    assert.eq(m.exports.f(0), 0);
+    assert.eq(m.exports.f(5), 5);
+  }
+
+  {
+    let m = instantiate(`
+      (module
+        (type (array i32))
+        (func (export "f") (result externref)
+          (extern.externalize (array.new_canon 0 (i32.const 42) (i32.const 5))))
+      )
+    `);
+    assert.eq(typeof m.exports.f(), "object");
+  }
+}
+
+function testRoundtrip() {
+  {
+    let m = instantiate(`
+      (module
+        (func (param anyref) (result anyref)
+          (extern.internalize (extern.externalize (local.get 0))))
+        (func (export "f") (param i32) (result i32)
+          (i31.get_s (ref.cast i31 (call 0 (i31.new (local.get 0))))))
+      )
+    `);
+    assert.eq(m.exports.f(0), 0);
+    assert.eq(m.exports.f(5), 5);
+    assert.eq(m.exports.f(2**30 - 1), 2**30 - 1);
+  }
+
+  {
+    let m = instantiate(`
+      (module
+        (type (array i32))
+        (func (param anyref) (result anyref)
+          (extern.internalize (extern.externalize (local.get 0))))
+        (func (export "f") (result i32)
+          (array.get 0
+                     (ref.cast 0 (call 0 (array.new_canon 0 (i32.const 42) (i32.const 5))))
+                     (i32.const 0)))
+      )
+    `);
+    assert.eq(m.exports.f(), 42);
+  }
+}
+
+function testTable() {
+  {
+    let m = instantiate(`
+      (module
+        (type (struct))
+        (table (export "t") 10 externref)
+        (func (table.set (i32.const 0) (extern.externalize (struct.new_canon 0))))
+        (func (export "isStruct") (result i32)
+          (ref.test 0 (extern.internalize (table.get (i32.const 1)))))
+        (start 0)
+      )
+    `);
+    assert.eq(m.exports.t.get(0) !== null, true);
+    assert.eq(m.exports.t.get(1), null);
+    m.exports.t.set(1, m.exports.t.get(0));
+    assert.eq(m.exports.t.get(1) !== null, true);
+    assert.eq(m.exports.isStruct(), 1);
+  }
+}
+
+testInternalize();
+testExternalize();
+testRoundtrip();
+testTable();

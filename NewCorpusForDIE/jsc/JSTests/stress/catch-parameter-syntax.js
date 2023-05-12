@@ -1,0 +1,275 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+function noInline() {
+}
+
+function OSRExit() {
+}
+
+function ensureArrayStorage() {
+}
+
+function fiatInt52(i) {
+	return i;
+}
+
+function noDFG() {
+}
+
+function noOSRExitFuzzing() {
+}
+
+function isFinalTier() {
+	return true;
+}
+
+function transferArrayBuffer() {
+}
+
+function fullGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function edenGC() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function forceGCSlowPaths() {
+	if (gc !== undefined) 
+		gc();
+	else
+		CollectGarbage();
+}
+
+function noFTL() {
+
+}
+
+function debug(x) {
+	console.log(x);
+}
+
+function describe(x) {
+	console.log(x);
+}
+
+function isInt32(i) {
+	return (typeof i === "number");
+}
+
+function BigInt(i) {
+	return i;
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+function testSyntax(script) {
+    try {
+        eval(script);
+    } catch (error) {
+        if (error instanceof SyntaxError)
+            throw new Error("Bad error: " + String(error));
+    }
+}
+
+function testSyntaxError(script, message) {
+    var error = null;
+    try {
+        eval(script);
+    } catch (e) {
+        error = e;
+    }
+    if (!error)
+        throw new Error("Expected syntax error not thrown");
+
+    if (String(error) !== message)
+        throw new Error("Bad error: " + String(error));
+}
+
+testSyntaxError(`
+(function () {
+    try {
+    } catch ([a, a]) {
+    }
+})
+`, `SyntaxError: Unexpected identifier 'a'. Cannot declare a lexical variable twice: 'a'.`);
+
+testSyntaxError(`
+(function () {
+    try {
+    } catch ({ a, b:a }) {
+    }
+})
+`, `SyntaxError: Unexpected identifier 'a'. Cannot declare a lexical variable twice: 'a'.`);
+
+testSyntax(`
+(function () {
+    try {
+    } catch (let) {
+    }
+})
+`, ``);
+
+testSyntax(`
+(function () {
+    try {
+    } catch ([let]) {
+    }
+})
+`, ``);
+
+testSyntaxError(`
+(function () {
+    'use strict';
+    try {
+    } catch (let) {
+    }
+})
+`, `SyntaxError: Cannot use 'let' as a catch parameter name in strict mode.`);
+
+testSyntaxError(`
+(function () {
+    'use strict';
+    try {
+    } catch ([let]) {
+    }
+})
+`, `SyntaxError: Cannot use 'let' as a catch parameter name in strict mode.`);
+
+
+testSyntax(`
+(function () {
+    try {
+    } catch (yield) {
+    }
+})
+`);
+
+testSyntax(`
+(function () {
+    try {
+    } catch ([yield]) {
+    }
+})
+`);
+
+testSyntaxError(`
+(function () {
+    'use strict';
+    try {
+    } catch (yield) {
+    }
+})
+`, `SyntaxError: Cannot use 'yield' as a catch parameter name in strict mode.`);
+
+testSyntaxError(`
+(function () {
+    'use strict';
+    try {
+    } catch ([yield]) {
+    }
+})
+`, `SyntaxError: Cannot use 'yield' as a catch parameter name in strict mode.`);
+
+testSyntaxError(`
+(function () {
+    try {
+    } catch (yield = 20) {
+    }
+})
+`, `SyntaxError: Unexpected token '='. Expected ')' to end a 'catch' target.`);
+
+testSyntax(`
+(function () {
+    try {
+    } catch ([...yield]) {
+    }
+})
+`);
+
+testSyntax(`
+(function () {
+    try {
+    } catch ([yield = 30]) {
+    }
+})
+`);
+
+testSyntax(`
+(function () {
+    try {
+    } catch ({ yield = 30 }) {
+    }
+})
+`);
+
+testSyntaxError(`
+(function () {
+    try {
+    } catch (...Hello) {
+    }
+})
+`, `SyntaxError: Unexpected token '...'. Expected a parameter pattern or a ')' in parameter list.`);
+
+testSyntaxError(`
+(function *() {
+    try {
+    } catch (yield) {
+    }
+})
+`, `SyntaxError: Cannot use 'yield' as a catch parameter name in a generator function.`);
+
+testSyntax(`
+(function *() {
+    try {
+    } catch ({ value = yield 42 }) {
+    }
+})
+`);
+
+testSyntax(`
+(function *() {
+    try {
+    } catch ({ value = yield }) {
+    }
+})
+`);

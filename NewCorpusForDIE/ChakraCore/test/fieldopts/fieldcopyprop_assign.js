@@ -1,0 +1,101 @@
+function gc() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+}
+
+WScript = {
+    _jscGC: gc,
+    _jscPrint: console.log,
+    _convertPathname : function(dosStylePath)
+    {
+        return dosStylePath.replace(/\\/g, "/");
+    },
+    Arguments : [ "summary" ],
+    Echo : function()
+    {
+        WScript._jscPrint.apply(this, arguments);
+    },
+    LoadScriptFile : function(path)
+    {
+    },
+    Quit : function()
+    {
+    },
+    Platform :
+    {
+        "BUILD_TYPE": "Debug"
+    }
+};
+
+function CollectGarbage()
+{
+    WScript._jscGC();
+}
+
+function $ERROR(e)
+{
+}
+
+if (typeof(console) == "undefined") {
+    console = {
+        log: print
+    };
+}
+
+if (typeof(gc) == "undefined") {
+  gc = function() {
+    for (let i = 0; i < 10; i++) {
+      new ArrayBuffer(1024 * 1024 * 10);
+    }
+  }
+}
+
+if (typeof(BigInt) == "undefined") {
+  BigInt = function (v) { return new Number(v); }
+}
+
+if (typeof(BigInt64Array) == "undefined") {
+  BigInt64Array = function(v) { return new Array(v); }
+}
+
+if (typeof(BigUint64Array) == "undefined") { 
+  BigUint64Array = function (v) { return new Array(v); }
+}
+
+if (typeof(quit) == "undefined") {
+  quit = function() {
+  }
+}
+
+//-------------------------------------------------------------------------------------------------------
+// Copyright (C) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE.txt file in the project root for full license information.
+//-------------------------------------------------------------------------------------------------------
+
+// Make sure assign to the object kill it's field's value for field copy prop.
+function f(o)
+{
+    var v = 0;
+    for (var i = 0; i < 10; i++)
+    {
+        var a = o.x;
+        o = o.y;
+        var b = o.x;
+        v += a + b;
+    }
+    return v;
+}
+
+var o = new Object();
+o.x = -1;
+var a = o;
+for (var i = 0; i < 10; i++)
+{
+    o.y = new Object();
+    o = o.y;
+    o.x = i;
+}
+o.y = a;
+
+WScript.Echo(f(a) == 80? "PASS" : "FAIL");
